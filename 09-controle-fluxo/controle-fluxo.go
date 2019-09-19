@@ -13,6 +13,12 @@ func main() {
 		fmt.Println("Nunca será executado!")
 	}
 
+	//Como o pré-compilador inclui os ; não pode escrever if com chave em baixo
+	// if 1 ==2 
+	// {
+	// 	fmt.Println("Não pode!")
+	// }
+
 	for i := 0; i < 5; i++ {
 		fmt.Println("Loop1: ", i)
 	}

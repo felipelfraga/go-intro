@@ -867,3 +867,9 @@ https://dedat.gitpages.serpro/deat4/microservices/arquitetura-microsservicos/swo
 
 
 
+------------
+
+Criando rest service
+
+//request router e dispatcher
+go get github.com/gorilla/mux
