@@ -1,0 +1,869 @@
+Ref:
+
+https://talks.golang.org/2012/splash.article
+
+Quais era os problemas?
+
+
+    slow builds
+    uncontrolled dependencies
+    each programmer using a different subset of the language
+    poor program understanding (code hard to read, poorly documented, and so on)
+    duplication of effort
+    cost of updates
+    version skew
+    difficulty of writing automatic tools
+    cross-language builds
+
+
+- Por que Go foi criado?
+- Go é compilado?
+- Dependências Java vs Go?
+- Gerenciamento de memória? Garbage Collection
+- Gerenciamento de concorrência?
+- Porque Go usou chaves ao invés de espaços para identação? Cross-language builds. Código python injetado dentro de outros pode quebrar.
+
+
+
+- Tópicos importantes
+
+-- Gerenciamento de dependências integrado 
+---- language defines that unused dependencies are a compile-time error (not a warning, an error)
+---- . The language defines that there can be no circular imports in the graph, and the compiler and linker both check that they do not exist
+---- Through the design of the standard library, great effort was spent on controlling dependencies. It can be better to copy a little code than to pull in a big library for one function. (A test in the system build complains if new core dependencies arise.) Dependency hygiene trumps code reuse (t the string conversion package strconv has a private implementation of the definition of 'printable' characters rather than pull in the large Unicode character class tables; that strconv honors the Unicode standard is verified by the package's tests. )
+
+-- Pacotes
+
+
+./compile22.go:8:5: last declared and not used
+
+
+defer, panic, recover
+declaração de tipos em ordem contrário do java
+arrays e slices
+funções podem retornar muitos valores
+
+
+
+package main
+
+import (
+	"golang.org/x/tour/wc"
+	"strings"
+)
+
+func WordCount(s string) map[string]int {
+	fields := strings.Fields(s)
+	wc := make(map[string]int)
+	for _, word := range fields {
+		if _, ok := wc[word]; !ok {
+			wc[word] = 1
+		} else {
+			wc[word] = wc[word] + 1
+		}
+	}
+	return wc;
+}
+
+func main() {
+	wc.Test(WordCount)
+}
+
+
+
+fibonacci com closure
+
+package main
+
+import "fmt"
+
+// fibonacci is a function that returns
+// a function that returns an int.
+func fibonacci() func() int {
+	atual := 0
+	return func() int {
+		fib := fibreal(atual)
+		atual++
+		return fib
+	}
+}
+	
+func fibreal(i int) int {
+	if i == 0 {
+		return 0
+	} else if i == 1 {
+		return 1
+	} else {
+		return fibreal(i - 1) + fibreal(i - 2)
+	}
+}
+
+func main() {
+	f := fibonacci()
+	for i := 0; i < 20; i++ {
+		fmt.Println(f())
+	}
+}
+
+
+
+panic: runtime error: invalid memory address or nil pointer dereference
+[signal SIGSEGV: segmentation violation code=0x1 addr=0x0 pc=0x48e836]
+
+
+The empty interface interface{} object
+
+Goroutines
+
+
+ An important property of Go's package system is that the package path, being in general an arbitrary string, can be co-opted to refer to remote repositories by having it identify the URL of the site serving the repository.
+
+Here is how to use the doozer package from github. The go get command uses the go build tool to fetch the repository from the site and install it. Once installed, it can be imported and used like any regular package.
+
+$ go get github.com/4ad/doozer // Shell command to fetch package
+
+import "github.com/4ad/doozer" // Doozer client's import statement
+
+var client doozer.Conn         // Client's use of package
+
+It's worth noting that the go get command downloads dependencies recursively, a property made possible only because the dependencies are explicit. Also, the allocation of the space of import paths is delegated to URLs, which makes the naming of packages decentralized and therefore scalable, in contrast to centralized registries used by other languages. 
+
+
+if i < f() {
+    g()
+}
+
+not like this
+
+if i < f()  // wrong!
+{           // wrong!
+    g()
+}
+
+
+
+fmt.Printf("Hello %d\n", 23)
+fmt.Fprint(os.Stdout, "Hello ", 23, "\n")
+fmt.Println("Hello", 23)
+fmt.Println(fmt.Sprint("Hello ", 23))
+
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXxXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXx
+
+- programando mesmo
+
+* instalando uma dependência no gohome: go get github.com/joho/godotenv
+
+
+
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXxXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXx
+
+
+1. Pq devo usar Go e não Java, Node, [insira_aqui_sua_linguagem_framework_favorito]
+
+ou "Como rodar minha aplicação no flavor m0 do Estaleiro"
+
+Quem vai responder isso é o  Rob Pike (Google, Inc.) no artigo
+https://talks.golang.org/2012/splash.article
+
+2. Tenha em mente a frase:
+
+In short, development at Google is big, can be slow, and is often clumsy. But it is effective. 
+
+3. Quais era os problemas?
+
+- Builds lentos
+- Dependências descontroladas
+- Cada progrmador usando um subset diferente da linguagem
+- Código difícil de entender, mal documentado e etc
+- Duplicação de esforço
+- Custo de atualizações
+- Espalhamento de versões (Version skew)
+- Dificuldade de escrever ferramentas automáticas
+- Builds multi-plataformas
+
+4. O que é Go?
+
+Um projeto open source com licença BSD lançado primeiramente em março de 2012:
+
+- Especificação da linguagem de programação
+- Runtime (garbage collector, agendador, etc)
+- Compilador
+- Biblioteca padrão
+- Tooling (compilação, resolução de dependências, documentação, profiling, formatação)
+- Documentação
+
+5. Características importantes
+
+- Compilado para linguagem de máquina
+- Estaticamente linkado (mas existem outras formas de build)
+- Fortemente tipada
+- Passagem por Valor (igual no java, porém com ponteiros)
+- Orientada a objetos (mas não espere que seja como Java)
+- Tudo existe dentro de um mesmo workspace com estrutura padronizada, contendo o código sendo desenvolvido, dependências e binários executáveis
+- Múltiplas versões de dependências vivem no mesmo workspace (por exemplo gerenciadas pelo git)
+- Cada projeto contém um ou mais pacotes
+- Cada pacote contém um ou mais fontes em um mesmo diretório físico
+- O path do diretório onde existe o pacote determina o import path
+
+6. $GOPATH identifica o local desse uber workspace
+
+bin/
+    hello                          # command executable
+    outyet                         # command executable
+src/
+    github.com/golang/example/
+        .git/                      # Git repository metadata
+	hello/
+	    hello.go               # command source
+	outyet/
+	    main.go                # command source
+	    main_test.go           # test source
+	stringutil/
+	    reverse.go             # package source
+	    reverse_test.go        # test source
+    golang.org/x/image/
+        .git/                      # Git repository metadata
+	bmp/
+	    reader.go              # package source
+	    writer.go              # package source
+    ... (many more repositories and packages omitted) ...
+
+
+7. Instalar!
+
+https://golang.org/doc/install
+
+Descompactar em algum diretório, por exemplo:
+$HOME/opt/go
+Obs.: Não pode ser $HOME/go para não conflitar com o GOPATH (visto a seguir)
+
+No .bashrc
+Adicionar no PATH:
+PATH=$HOME/opt/go/bin:$PATH
+export PATH
+
+Obs.: Vai ser necessário rodar source ~/.bashrc
+
+Workspace
+Diretório padrão do GOPATH: $HOME/go
+
+Vale a pena colocar o bin do GOPATH no path para executar diretamente os binários compilados
+No .bashrc
+PATH=$HOME/go/bin:$PATH
+
+PATH=$HOME/go/bin:$PATH
+export PATH
+Obs.: Vai ser necessário rodar source ~/.bashrc
+
+Criar diretórios do workspace:
+$HOME/go/src
+$HOME/go/bin
+
+8. Hello, world!!!
+
+Criar o arquivo $HOME/go/src/hello/hello.go
+
+Obs.: O executável principal sempre fica no package main
+
+package main
+
+import "fmt"
+
+func main() {
+	fmt.Printf("hello, world\n")
+}
+
+cd $HOME/go/src/hello
+gofmt -w hello.go
+go build
+go install
+
+
+9. Import Path vs Packages
+
+Unidades de organização de código que podem exportar funcionalidades, por exemplo
+
+"fmt" (import path = "fmt" e package = "fmt")
+"encoding/json" (import path = "encoding/json" e package = "json")
+
+Por convenção o nome do pacote é a última parte do import path
+
+10. Exemplo com import path
+
+package main
+
+import (
+	"fmt"
+	"github.com/golang/example/stringutil"
+)
+
+func main() {
+	msg := stringutil.Reverse("hello, world")
+	fmt.Println(msg)
+}
+
+dica: go get github.com/golang/example/stringutil
+
+9.1 Visibilidade
+
+package main
+
+import "fmt"
+
+var Publico int = 0
+var privado int = 0
+
+
+10. Declaração de variáveis, constantes e tipagem
+
+- Forte
+- Requer conversão explícita
+
+package main
+
+import "fmt"
+
+func main() {
+
+	//*******************************
+	//declaração de variáveis
+
+	var numeroInteiro int = 42
+	var numeroPontoFlutuante float64 = 42.1
+	//numeroPontoFlutuante = numeroInteiro //erro de compilação
+	numeroPontoFlutuante = float64(numeroInteiro) //ok
+
+	//*******************************	
+	//declaração de variável com tipo implícito
+	
+	//numeroInteiro := 42 //erro de compilação, numeroInteiro já declarado
+	numeroInteiro2 := 42
+	umaString := "quarenta_e_dois"
+
+	//*******************************	
+	//múltiplas declarações
+
+	var i, j, k int = 1, 1, 1
+
+	//*******************************
+	//Constantes
+
+	const imutavel = "imutavel"
+	//imutavel = "alterado" //erro de compilação
+
+	fmt.Println(numeroInteiro, numeroInteiro2, numeroPontoFlutuante, umaString, i, j, k)
+}
+
+
+11. Tipos básicos
+
+bool
+
+string
+
+int  int8  int16  int32  int64
+uint uint8 uint16 uint32 uint64 uintptr
+
+byte // alias for uint8
+
+rune // alias for int32
+     // represents a Unicode code point
+
+float32 float64
+
+complex64 complex128
+
+
+12. Criando outros tipos
+
+package main
+
+import "fmt"
+
+type MeuFloat float64
+
+func main() {
+
+	meuFloat := 42.2
+
+	fmt.Println(meuFloat)
+}
+
+13. Slices e Arrays
+
+Slices tem tamanho dinâmico, arrays não, porém slices possuem um array como armazenamento real dos dados
+Ou seja, é possível causar um SIGSEG! =)
+
+package main
+
+import (
+	"fmt"
+)
+
+func main() {
+	array := [6]int{2, 3, 5, 7, 11, 13}
+	fmt.Println(array)
+
+	slice := array[1:4]
+	fmt.Println(slice)
+
+	slice = array[:2]
+	fmt.Println(slice)
+
+	slice = array[1:]
+	fmt.Println(slice)
+}
+
+//len() e cap()
+
+14. Slices com tamanho dinâmico
+
+package main
+
+import "fmt"
+
+func main() {
+	a := make([]int, 5)
+	printSlice("a", a)
+
+	b := make([]int, 0, 5)
+	printSlice("b", b)
+
+	c := b[:2]
+	printSlice("c", c)
+
+	d := c[2:5]
+	printSlice("d", d)
+
+	e := append(d, 1)
+	printSlice("e", e)
+}
+
+func printSlice(s string, x []int) {
+	fmt.Printf("%s len=%d cap=%d %v\n", s, len(x), cap(x), x)
+}
+
+
+15. Controle de fluxo
+
+package main
+
+import "fmt"
+
+func main() {
+
+	if x := 1; x == 1 {
+		fmt.Println("É igual a 1")
+	} else {
+		fmt.Println("Nunca será executado!")
+	}
+
+	for i := 0; i < 5; i++ {
+		fmt.Println("Loop1: ", i)
+	}
+
+	i := 0
+	for ; i < 5; i++ {
+		fmt.Println("Loop2: ", i)
+	}
+
+	//for é o while do Go =)
+	j := 0
+	for j < 5 {
+		fmt.Println("Loop3: ", j)
+		j++
+	}
+
+	fmt.Print("Go runs on ")
+	switch os := runtime.GOOS; os {
+	ca ese "darwin":
+		fmt.Println("OS X.")
+	case "linux":
+		fmt.Println("Linux.")
+	default:
+		// freebsd, openbsd,
+		// plan9, windows...
+		fmt.Printf("%s.\n", os)
+	}
+
+
+}
+
+16. Range
+
+
+package main
+
+import "fmt"
+
+var pow = []int{1, 2, 4, 8, 16, 32}
+
+func main() {
+
+	for i := range pow {
+		fmt.Printf("Indice: %d\n", i)
+	}
+
+	for i, v := range pow {
+		fmt.Printf("Indice: %d Valor: %d\n", i, v)
+	}
+
+	for _, v := range pow {
+		fmt.Printf("Valor: %d\n", v)
+	}
+
+	for i, _ := range pow {
+		fmt.Printf("Indice %d\n", i)
+	}
+}
+
+17. Maps
+
+package main
+
+import "fmt"
+
+func main() {
+	m := make(map[string]int)
+
+	m["Answer"] = 42
+	fmt.Println("The value:", m["Answer"])
+
+	m["Answer"] = 48
+	fmt.Println("The value:", m["Answer"])
+
+	delete(m, "Answer")
+	fmt.Println("The value:", m["Answer"])
+
+	v, ok := m["Answer"]
+	fmt.Println("The value:", v, "Present?", ok)
+}
+
+
+18. Funções
+
+package main
+
+import "fmt"
+
+func main() {
+	fmt.Println(vai("foi"))
+}
+
+func vai(texto string) (saida1, saida2 string) {
+	return texto + ": 1", texto + ": 2"
+}
+
+19. Funcional
+
+package main
+
+import "fmt"
+
+func main() {
+	fmt.Println(vai("foi"))
+	fmt.Println(vaiIndireto(vai))
+	fmt.Println(vaiIndireto(
+		func(texto string) (saida1, saida2 string) {
+			return "lamda: 1", "lamda: 2"
+		}))
+}
+
+func vai(texto string) (saida1, saida2 string) {
+	return texto + ": 1", texto + ": 2"
+}
+
+func vaiIndireto(vaiReal func(texto string) (string, string)) (saida1, saida2 string) {
+	return vaiReal("indireto")
+}
+
+
+20. Structs
+
+package main
+
+import "fmt"
+
+type Ponto struct {
+	X, Y int
+}
+
+func main() {
+
+	ponto := Ponto{1, 2}
+	fmt.Println(ponto)
+
+}
+
+
+21. Ponteiros
+
+package main
+
+import "fmt"
+
+func main() {
+	i, j := 42, 2701
+
+	p := &i         // point to i
+	fmt.Println(*p) // read i through the pointer
+	*p = 21         // set i through the pointer
+	fmt.Println(i)  // see the new value of i
+
+	p = &j         // point to j
+	*p = *p / 37   // divide j through the pointer
+	fmt.Println(j) // see the new value of j
+	//por simplicidade, go não possui aritimética de ponteiros
+}
+
+22. Ponteiros para structs
+
+package main
+
+import "fmt"
+
+type Vertex struct {
+	X int
+	Y int
+}
+
+func main() {
+	v := Vertex{1, 2}
+	p := &v
+	p.X = 1e9
+	fmt.Println(v)
+}
+
+
+23. Métodos
+
+package main
+
+import "fmt"
+
+type Ponto struct {
+	X, Y int
+}
+
+func (p Ponto) TentaIncrementar(incremento int) {
+	p.X += incremento
+	p.Y += incremento
+}
+
+func (p *Ponto) Incrementa(incremento int) {
+	p.X += incremento //atalho para (*p).X += incremento
+	p.Y += incremento
+}
+
+func main() {
+
+	ponto := Ponto{5, 8}
+	fmt.Println(ponto)
+
+	ponto.TentaIncrementar(2)
+	fmt.Println(ponto)
+
+	ponto.Incrementa(2)
+	fmt.Println(ponto)
+
+	ponteiroParaPonto := &ponto
+
+	ponteiroParaPonto.Incrementa(2) //syntax sugar
+	fmt.Println(ponto)
+
+	(*ponteiroParaPonto).Incrementa(2)
+	fmt.Println(ponto)
+
+}
+
+
+24. Interfaces
+
+Go não suporta herança. Favoreça composição ao invés de herança.
+Interfaces são garantidas mas são verificadas de forma implícita
+
+package main
+
+import "fmt"
+
+type Incrementavel interface {
+	Incrementa(incremento int)
+}
+
+type Ponto struct {
+	X, Y int
+}
+
+func (p *Ponto) Incrementa(incremento int) {
+	p.X += incremento //atalho para (*p).X += incremento
+	p.Y += incremento
+}
+
+func main() {
+
+	var ponto Incrementavel
+	//compila mas SIGSEG
+	//função é chamada com valor nulo, não é um NullPointer
+	//ponto.Incrementa(10)
+
+	ponto = &Ponto{2, 4}
+	fmt.Println(ponto)
+
+	ponto.Incrementa(10)
+	fmt.Println(ponto)
+
+}
+
+25. Erros
+
+Exception x RuntimeException
+
+type error interface {
+    Error() string
+}
+
+
+package main
+
+import "fmt"
+
+type Incrementavel interface {
+	Incrementa(incremento int) error
+}
+
+type Ponto struct {
+	X, Y int
+}
+
+type ArgumentoInvalido int
+
+func (ai ArgumentoInvalido) Error() string {
+	return fmt.Sprintf("O argumento %d é inválido", ai)
+}
+
+func (p *Ponto) Incrementa(incremento int) error {
+	if incremento < 1 {
+		return ArgumentoInvalido(incremento)
+	}
+	p.X += incremento
+	p.Y += incremento
+	return nil
+}
+
+func main() {
+
+	var ponto Incrementavel = &Ponto{2, 4}
+
+	ponto.Incrementa(10)
+	fmt.Println(ponto)
+
+	erro := ponto.Incrementa(-10)
+	if erro == nil {
+		fmt.Println(ponto)
+	} else {
+		fmt.Println(ponto, erro)
+	}
+
+}
+
+26. Defer & panic & recover
+
+package main
+
+import "fmt"
+
+func main() {
+	dizAlo()
+	defer dizAlo()
+	defer tomaRivotrilSePreciso()
+	surta()
+}
+
+func dizAlo() {
+	fmt.Println("_o/")
+}
+
+func tomaRivotrilSePreciso() {
+	if s := recover(); s != nil {
+		fmt.Printf("Surto acalmado. Problema foi %s\n", s)
+	} else {
+		fmt.Println("Zen.")
+	}
+}
+
+func surta() {
+	fmt.Println("Surtando!!!!!!")
+	panic("ahhhhhhhhhhhhhhh...")
+}
+
+
+26. Concorrência
+
+package main
+
+import (
+	"fmt"
+	"time"
+)
+
+func vai(n int) {
+	fmt.Println(n)
+}
+
+func main() {
+	go vai(10)
+	vai(11)
+	time.Sleep(100 * time.Millisecond)
+}
+
+
+27. Channels
+
+package main
+
+import (
+	"fmt"
+	"time"
+)
+
+func vai(i int, c chan int) {
+	time.Sleep(500 * time.Millisecond)
+	c <- i * 2
+}
+
+func main() {
+
+	c := make(chan int)
+	go vai(10, c)
+	go vai(20, c)
+	i, j := <-c, <-c
+	fmt.Println(i, j)
+
+}
+
+28. Go Modules
+
+
+
+XX. Clean
+
+- import não usado? não compila
+- variável não usada? não compila
+- composição ao invés de herança
+
+
+Primer:
+https://golang.org/doc/code.html
+
+Tour of Go
+https://tour.golang.org/
+
+Excelente apresentação:
+https://speakerdeck.com/campoy/an-introduction-to-go-cern
+
+Material DEDAT Recife
+https://dedat.gitpages.serpro/deat4/microservices/arquitetura-microsservicos/swot-go/#objetivo
+
+
+
+
